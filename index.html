@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Unity WebGL Player | P1Zelda</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <link rel="stylesheet" href="TemplateData/style.css">
+    <style>
+      #unity-container { display: none; } /* Hide Unity container initially */
+      #homepage-content { text-align: center; padding: 20px; }
+      button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    </style>
+  </head>
+  <body>
+    <!-- Homepage Content -->
+    <div id="homepage-content">
+      <h1>Welcome to P1Zelda</h1>
+      <p>This is an exciting new Unity WebGL game. Click the button below to start playing!</p>
+      <button id="start-button">Play P1Zelda</button>
+    </div>
+
+    <!-- Unity Container (Initially Hidden) -->
+    <div id="unity-container" class="unity-desktop">
+      <canvas id="unity-canvas" width="1024" height="960" tabindex="-1"></canvas>
+      <div id="unity-loading-bar">
+        <div id="unity-logo"></div>
+        <div id="unity-progress-bar-empty">
+          <div id="unity-progress-bar-full"></div>
+        </div>
+      </div>
+      <div id="unity-warning"></div>
+      <div id="unity-footer">
+        <div id="unity-webgl-logo"></div>
+        <div id="unity-fullscreen-button"></div>
+        <div id="unity-build-title">P1Zelda</div>
+      </div>
+    </div>
+
+    <script>
+      // Unity Loading and Button Click Logic
+      var container = document.querySelector("#unity-container");
+      var canvas = document.querySelector("#unity-canvas");
+      var loadingBar = document.querySelector("#unity-loading-bar");
+      var progressBarFull = document.querySelector("#unity-progress-bar-full");
+      var fullscreenButton = document.querySelector("#unity-fullscreen-button");
+      var warningBanner = document.querySelector("#unity-warning");
+      var startButton = document.querySelector("#start-button");
+      var homepageContent = document.querySelector("#homepage-content");
+
+      function unityShowBanner(msg, type) {
+        function updateBannerVisibility() {
+          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+        }
+        var div = document.createElement('div');
+        div.innerHTML = msg;
+        warningBanner.appendChild(div);
+        if (type == 'error') div.style = 'background: red; padding: 10px;';
+        else {
+          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+          setTimeout(function() {
+            warningBanner.removeChild(div);
+            updateBannerVisibility();
+          }, 5000);
+        }
+        updateBannerVisibility();
+      }
+
+      // Button Click Event: Show the Unity Game
+      startButton.addEventListener('click', function() {
+        homepageContent.style.display = 'none'; // Hide the homepage content
+        container.style.display = 'block'; // Show the Unity container
+
+        var buildUrl = "Build";
+        var loaderUrl = buildUrl + "/WebBuildZelda.loader.js";
+        var config = {
+          dataUrl: buildUrl + "/webgl.data",
+          frameworkUrl: buildUrl + "/build.framework.js",
+          codeUrl: buildUrl + "/build.wasm",
+          streamingAssetsUrl: "StreamingAssets",
+          companyName: "studio 13",
+          productName: "P1Zelda",
+          productVersion: "0.1",
+          showBanner: unityShowBanner,
+        };
+
+        // Desktop style: Render the game canvas in a window
+        canvas.style.width = "1024px";
+        canvas.style.height = "960px";
+
+        loadingBar.style.display = "block";
+
+        var script = document.createElement("script");
+        script.src = loaderUrl;
+        script.onload = () => {
+          createUnityInstance(canvas, config, (progress) => {
+            progressBarFull.style.width = 100 * progress + "%";
+          }).then((unityInstance) => {
+            loadingBar.style.display = "none";
+            fullscreenButton.onclick = () => {
+              unityInstance.SetFullscreen(1);
+            };
+          }).catch((message) => {
+            alert(message);
+          });
+        };
+        document.body.appendChild(script);
+      });
+
+    </script>
+  </body>
+</html>
